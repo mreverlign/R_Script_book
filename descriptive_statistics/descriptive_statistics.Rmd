@@ -1,0 +1,61 @@
+
+install.packages("pastecs")
+library(pastecs)
+
+
+# 2. Sample Data ----
+# We use the built-in 'iris' dataset for this example.
+data("iris")
+
+# --- 3. Measures of Central Tendency ---
+# These metrics describe the center of the data distribution.
+
+# Mean: The arithmetic average. Sensitive to outliers.
+# R's internal C function `do_mean()` is called.
+mean_sepal_length <- mean(iris$Sepal.Length, na.rm = TRUE)
+print(paste("Mean Sepal Length:", mean_sepal_length))
+
+# Median: The middle value of sorted data. Robust to outliers.
+# R uses C's `qsort()` to sort the data efficiently.
+median_sepal_length <- median(iris$Sepal.Length, na.rm = TRUE)
+print(paste("Median Sepal Length:", median_sepal_length))
+
+# Mode: The most frequently occurring value. R has no built-in function.
+get_mode <- function(v) {
+  v_clean <- v[!is.na(v)]
+  uniqv <- unique(v_clean)
+  uniqv[which.max(tabulate(match(v_clean, uniqv)))]
+}
+mode_species <- get_mode(iris$Species)
+print(paste("Mode of Species:", mode_species))
+
+
+# --- 4. Measures of Spread ---
+# These metrics quantify how much the data deviates from the center.
+
+# Variance and Standard Deviation
+# `var()` uses the formula sum((xi - mean)^2) / (n-1).
+var_sepal_length <- var(iris$Sepal.Length)
+sd_sepal_length <- sd(iris$Sepal.Length) # sd() is sqrt(var())
+print(paste("Variance of Sepal Length:", var_sepal_length))
+print(paste("Standard Deviation of Sepal Length:", sd_sepal_length))
+
+# Range: The difference between the maximum and minimum values.
+range_sepal_length <- range(iris$Sepal.Length)
+print(paste("Range of Sepal Length:", range_sepal_length[1], "-", range_sepal_length[2]))
+
+# Interquartile Range (IQR): The spread of the middle 50% of the data.
+# Resistant to outliers.
+iqr_sepal_length <- IQR(iris$Sepal.Length)
+print(paste("IQR of Sepal Length:", iqr_sepal_length))
+
+
+# --- 5. Comprehensive Summary Functions ---
+# `summary()` is a generic function that provides a quick overview of an object.
+# For a data frame, it summarizes each column appropriately.
+summary(iris)
+
+# `stat.desc()` from the 'pastecs' package provides a more exhaustive list.
+# The output is a data frame, which is useful for programmatic access.
+detailed_stats <- stat.desc(iris[, 1:4]) # Select only numeric columns
+print(detailed_stats)

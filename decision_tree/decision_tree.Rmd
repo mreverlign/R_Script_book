@@ -1,0 +1,28 @@
+
+# --- 1. Load Libraries ---
+install.packages("rpart")
+install.packages("rpart.plot")
+library(rpart)
+library(rpart.plot)
+
+# --- 2. Sample Data ---
+# The 'kyphosis' dataset from rpart is a good example for classification.
+# It contains data on children who have had corrective spinal surgery.
+# Goal: Predict if Kyphosis (a post-operative deformity) is present.
+data("kyphosis", package = "rpart")
+head(kyphosis)
+
+# --- 3. Build the Decision Tree Model ---
+# Formula: `Kyphosis ~ .` means "predict Kyphosis using all other variables".
+# The `rpart()` C code recursively evaluates splits to minimize impurity.
+tree_model <- rpart(Kyphosis ~ Age + Number + Start,
+                    data = kyphosis,
+                    method = "class") # Specify a classification tree
+
+# --- 4. Visualize the Decision Tree ---
+# `rpart.plot` creates a highly readable plot of the decision rules.
+rpart.plot(tree_model,
+           type = 2,           # Use labels on branches
+           extra = 104,        # Show prob & percentage of obs in nodes
+           fallen.leaves = TRUE, # Put leaves at the bottom
+           main = "Classification Tree for Kyphosis")

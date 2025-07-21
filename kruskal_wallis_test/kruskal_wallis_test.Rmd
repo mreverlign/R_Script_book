@@ -1,0 +1,27 @@
+# --- 1. Sample Data ---
+# The 'InsectSprays' dataset has counts of insects after being treated with
+# different sprays. This is a classic example for this test.
+data("InsectSprays")
+head(InsectSprays)
+
+# --- 2. Visualize the Data ---
+library(ggplot2)
+ggplot(InsectSprays, aes(x = spray, y = count, fill = spray)) +
+  geom_boxplot() +
+  labs(title = "Insect Counts by Spray Type",
+       x = "Spray", y = "Insect Count") +
+  theme_minimal()
+
+# --- 3. Perform the Kruskal-Wallis Test ---
+# H0: The distribution of insect counts is the same across all spray types.
+# The test computes ranks across all observations and then sums them per group.
+kruskal_result <- kruskal.test(count ~ spray, data = InsectSprays)
+print(kruskal_result)
+
+# --- 4. Post-Hoc Test ---
+# If the Kruskal-Wallis test is significant, a post-hoc test is needed to
+# find out which specific groups are different from each other.
+# The Dunn's test is a common choice.
+# install.packages("dunn.test")
+library(dunn.test)
+dunn.test(InsectSprays$count, InsectSprays$spray, method = "bonferroni")

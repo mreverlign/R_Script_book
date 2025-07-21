@@ -1,0 +1,42 @@
+
+
+
+install.packages("ggplot2")
+install.packages("gghalves")        # For raincloud plots
+library(ggplot2)
+library(gghalves)
+
+# --- 2. Sample Data ---
+# The 'diamonds' dataset from ggplot2 is great for showing group differences.
+data("diamonds", package = "ggplot2")
+
+# --- 3. Box Plots for Group Comparison ---
+# Box plots provide a succinct summary of distributions across groups .
+# They show median, quartiles, whiskers, and outliers.
+ggplot(diamonds, aes(x = cut, y = price, fill = cut)) +
+  geom_boxplot() +
+  scale_y_log10() + # Use a log scale for skewed data like price
+  labs(title = "Diamond Price by Cut Quality",
+       x = "Cut Quality",
+       y = "Price (log scale)") +
+  theme_classic()
+
+
+# --- 4. Raincloud Plots for Richer Insight ---
+# Raincloud plots combine a density plot, box plot, and raw data points.
+# They offer a more complete picture of the data distribution.
+ggplot(diamonds, aes(x = cut, y = price, fill = cut)) +
+  # Add the half-violin plot (the 'cloud')
+  geom_half_violin(side = "r", trim = FALSE, alpha = 0.6) +
+  # Add the box plot inside the violin
+  geom_boxplot(width = 0.15, outlier.shape = NA, alpha = 0.8) +
+  # Add the individual data points (the 'rain')
+  # Use gghalves for better alignment
+  geom_half_point(side = "l", shape = 21, alpha = 0.2, size = 1.5) +
+  scale_y_log10() +
+  labs(title = "Raincloud Plot of Diamond Price by Cut",
+       subtitle = "Density, summary, and raw data shown together",
+       x = "Cut Quality",
+       y = "Price (log scale)") +
+  theme_minimal() +
+  coord_flip() # Flip coordinates for the classic horizontal look

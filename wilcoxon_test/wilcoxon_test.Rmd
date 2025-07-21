@@ -1,0 +1,29 @@
+
+# --- 1. Sample Data ---
+# The 'sleep' dataset shows the effect of two soporific drugs on 10 patients.
+# It is structured for both paired and independent tests.
+data("sleep")
+head(sleep)
+
+# --- 2. Wilcoxon Rank-Sum Test (Mann-Whitney U Test) ---
+# Use this to compare two INDEPENDENT groups.
+# H0: The distributions of the two groups are the same.
+group1 <- sleep$extra[sleep$group == 1]
+group2 <- sleep$extra[sleep$group == 2]
+
+wilcox.test(group1, group2)
+
+
+# --- 3. Wilcoxon Signed-Rank Test ---
+# Use this to compare two PAIRED groups.
+# Here, we can treat the 'extra' sleep as a paired observation per patient,
+# even though they were given different drugs.
+# Let's create a more canonical paired dataset for clarity.
+
+# Sample data: weight of subjects before and after a program
+weight_before <- c(88, 92, 75, 81, 95, 99, 78, 85)
+weight_after <- c(85, 89, 73, 79, 91, 94, 77, 83)
+
+# H0: There is no difference in the ranks of paired differences.
+# The `wilcox.test` function uses C routines to rank data and compute the statistic.
+wilcox.test(weight_before, weight_after, paired = TRUE)

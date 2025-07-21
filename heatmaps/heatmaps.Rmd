@@ -1,0 +1,36 @@
+
+
+# --- 1. Load Libraries ---
+install.packages("pheatmap")
+install.packages("RColorBrewer")
+library(pheatmap)
+library(RColorBrewer)
+
+# --- 2. Sample Data ---
+# Heatmaps require a numeric matrix. We'll use the `mtcars` dataset.
+# It's crucial to scale the data first so that variables with large values
+# (like 'disp') don't dominate the color scale.
+data("mtcars")
+mtcars_matrix <- as.matrix(mtcars)
+scaled_mtcars <- scale(mtcars_matrix) # Scales each column to have mean=0, sd=1
+
+# --- 3. Create the Heatmap ---
+# `pheatmap` enhances the base `heatmap` function with better control and annotations.
+pheatmap(
+  scaled_mtcars,
+  main = "Heatmap of Scaled mtcars Dataset",
+  fontsize = 8,
+  # Clustering options
+  cluster_rows = TRUE, # Cluster rows (cars) by similarity
+  cluster_cols = TRUE, # Cluster columns (variables) by similarity
+  # Aesthetics
+  color = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(100),
+  border_color = "white",
+  # Add annotations
+  annotation_col = data.frame(
+    Type = factor(ifelse(mtcars$am == 1, "Manual", "Automatic")),
+    row.names = rownames(mtcars)
+  ),
+  cutree_rows = 4, # Cut row dendrogram into 4 clusters
+  cutree_cols = 2  # Cut column dendrogram into 2 clusters
+)

@@ -1,0 +1,36 @@
+
+# --- 1. Load Libraries ---
+install.packages("lme4")
+install.packages("ggplot2")
+library(lme4)
+library(ggplot2)
+
+# --- 2. Sample Data ---
+# The 'sleepstudy' dataset from lme4 is a classic example of repeated measures.
+# It tracks reaction times of subjects over 10 days of sleep deprivation.
+# - Reaction: Dependent variable (reaction time).
+# - Days: Fixed effect (time predictor).
+# - Subject: Random effect (grouping factor).
+data("sleepstudy", package = "lme4")
+
+# --- 3. Visualize the Data ---
+# Show individual trajectories and the overall trend.
+ggplot(sleepstudy, aes(x = Days, y = Reaction, group = Subject)) +
+  geom_line(alpha = 0.5) + # Individual subject lines
+  geom_smooth(aes(group = 1), method = "lm", se = FALSE, color = "blue") + # Overall trend
+  labs(title = "Reaction Time Over Days of Sleep Deprivation",
+       subtitle = "Each line is a different subject")
+
+# --- 4. Fit the Linear Mixed-Effects Model ---
+# Model: Reaction ~ Days + (1 | Subject)
+# - Fixed Effect: `Days`. We model an overall population slope for Days.
+# - Random Effect: `(1 | Subject)`. This is a "random intercept". It allows
+#   each subject to have their own baseline reaction time, accounting for
+#   the fact that measurements from the same subject are correlated.
+# `lmer` uses C++ (Eigen library) for fast estimation.
+lmm_model <- lmer(Reaction ~ Days + (1 | Subject), data = sleepstudy)
+
+
+# --- 5. Interpret the Model Results ---
+# The summary provides estimates for fixed effects and variances for random effects.
+summary(lmm_model)

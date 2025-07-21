@@ -1,0 +1,44 @@
+
+
+
+install.packages("ggplot2")
+install.packages("car")           # For Levene's Test
+library(ggplot2)
+library(car)
+
+# --- 2. Sample Data ---
+data("iris")
+
+# --- 3. Checking for Normality ---
+# A visual test for whether the data follows a normal distribution.
+
+# A. Q-Q Plot (Quantile-Quantile Plot)
+# `qqnorm` plots sample quantiles against theoretical normal quantiles.
+# If data is normal, points fall along the line drawn by `qqline`.
+qqnorm(iris$Sepal.Length, main = "Normal Q-Q Plot for Sepal Length")
+qqline(iris$Sepal.Length, col = "red", lwd = 2)
+
+# B. Shapiro-Wilk Test (Quantitative Test)
+# H0: The data is normally distributed.
+# A p-value > 0.05 suggests the data is not significantly different from normal.
+shapiro.test(iris$Sepal.Length)
+
+
+# --- 4. Checking for Homogeneity of Variance ---
+# This assumption (homoscedasticity) means the variance is equal across groups.
+# Crucial for ANOVA.
+
+# A. Visual Check with Box Plots
+# Look for similar box heights (IQRs) across the groups.
+ggplot(iris, aes(x = Species, y = Sepal.Length, fill = Species)) +
+  geom_boxplot() +
+  labs(title = "Sepal Length Variance Across Species",
+       subtitle = "Visual check for homogeneity of variance",
+       x = "Species", y = "Sepal Length") +
+  theme_minimal()
+
+# B. Levene's Test (Quantitative Test)
+# H0: The variances are equal across all groups.
+# A p-value > 0.05 suggests the variances are not significantly different.
+# `leveneTest()` performs an ANOVA on the absolute deviations from the median.
+leveneTest(Sepal.Length ~ Species, data = iris)

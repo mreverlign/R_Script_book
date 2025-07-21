@@ -1,0 +1,45 @@
+
+# --- 1. Load Libraries ---
+library(ggplot2)
+
+# --- 2. One-Way ANOVA ---
+# Tests the effect of ONE categorical independent variable on a continuous
+# dependent variable.
+
+# Sample Data
+data("chickwts")
+
+# Visualize
+ggplot(chickwts, aes(x = feed, y = weight, fill = feed)) +
+  geom_boxplot() +
+  labs(title = "Chick Weight by Feed Type")
+
+# Perform One-Way ANOVA
+# `aov()` fits a linear model using QR decomposition.
+anova_one_way <- aov(weight ~ feed, data = chickwts)
+summary(anova_one_way)
+
+# Post-Hoc Test (if ANOVA is significant)
+# Tukey's HSD (Honest Significant Differences) finds which pairs of groups differ.
+TukeyHSD(anova_one_way)
+
+
+# --- 3. Two-Way ANOVA ---
+# Tests the effects of TWO categorical independent variables and their
+# interaction on a continuous dependent variable.
+
+# Sample Data
+data("ToothGrowth")
+head(ToothGrowth)
+
+# Visualize with interaction plot
+ggplot(ToothGrowth, aes(x = factor(dose), y = len, color = supp, group = supp)) +
+  stat_summary(fun = mean, geom = "point") +
+  stat_summary(fun = mean, geom = "line") +
+  labs(title = "Tooth Growth by Supplement and Dose",
+       x = "Dose (mg)", y = "Tooth Length", color = "Supplement")
+
+# Perform Two-Way ANOVA
+# The `*` symbol tests for both main effects (supp, dose) and the interaction (supp:dose).
+anova_two_way <- aov(len ~ supp * factor(dose), data = ToothGrowth)
+summary(anova_two_way)

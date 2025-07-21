@@ -1,0 +1,52 @@
+
+
+
+ install.packages("ggplot2")
+install.packages("corrplot")
+library(ggplot2)
+library(corrplot)
+
+# --- 2. Sample Data ---
+# The 'mtcars' dataset contains numeric variables, ideal for this task.
+data("mtcars")
+
+# --- 3. Histograms ---
+# Histograms visualize data frequency across intervals (bins).
+
+# Base R Histogram: Quick and simple.
+# `hist()` uses a C routine to efficiently bin and count data.
+hist(mtcars$mpg,
+     breaks = 10,
+     col = "skyblue",
+     main = "Base R Histogram of MPG",
+     xlab = "Miles Per Gallon (MPG)")
+
+# ggplot2 Histogram: More flexible and aesthetically pleasing.
+ggplot(mtcars, aes(x = mpg)) +
+  geom_histogram(binwidth = 2.5, fill = "steelblue", color = "white") +
+  labs(title = "ggplot2 Histogram of MPG",
+       x = "Miles Per Gallon (MPG)",
+       y = "Frequency") +
+  theme_minimal()
+
+
+# --- 4. Correlation Plots ---
+# Correlation plots visually represent a matrix of correlation coefficients.
+
+# Step 1: Compute the correlation matrix.
+# `cor()` uses optimized C/Fortran routines for calculation.
+numeric_vars <- mtcars[, c("mpg", "disp", "hp", "drat", "wt", "qsec")]
+cor_matrix <- cor(numeric_vars)
+print(round(cor_matrix, 2))
+
+# Step 2: Visualize the matrix with corrplot.
+# `corrplot()` provides extensive options for visualizing the matrix.
+corrplot(cor_matrix,
+         method = "color",       # Use color to represent correlation
+         type = "upper",         # Show the upper triangle of the matrix
+         order = "hclust",       # Reorder variables based on clustering
+         addCoef.col = "black",  # Add correlation coefficients
+         tl.col = "black",       # Text label color
+         tl.srt = 45,            # Rotate text labels
+         title = "Correlation Plot of mtcars Variables",
+         mar = c(0, 0, 1, 0))     # Adjust margins
