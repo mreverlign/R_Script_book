@@ -1,0 +1,258 @@
+# ============================================================================
+# ORIGINAL R CODE - STATISTICAL ANALYSIS FUNCTIONS
+# ============================================================================
+# This is our starting point - a comprehensive R script with multiple functions
+
+# Load required R libraries
+
+
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("corrplot")
+install.packages("car")
+install.packages("rpart")
+install.packages("rpart.plot")
+install.packages("lme4")
+install.packages("pheatmap")
+install.packages("pastecs")
+
+library(dplyr)  
+library(ggplot2)
+library(corrplot)
+library(car)
+library(rpart)
+library(rpart.plot)
+library(lme4)
+library(pheatmap)
+library(pastecs)
+
+# Function 1: Descriptive Statistics
+get_descriptive_stats <- function(data) {
+  cat("=== DESCRIPTIVE STATISTICS ===\n")
+  
+  # Basic summary
+  print(summary(data))
+  
+  # Detailed statistics for numeric columns
+  numeric_cols <- data %>% select_if(is.numeric)
+  detailed_stats <- stat.desc(numeric_cols)
+  print(detailed_stats)
+  
+  return(detailed_stats)
+}
+
+# Function 2: Correlation Analysis
+analyze_correlations <- function(data) {
+  cat("\n=== CORRELATION ANALYSIS ===\n")
+  
+  # Calculate correlation matrix
+  numeric_data <- data %>% select_if(is.numeric)
+  cor_matrix <- cor(numeric_data, use = "complete.obs")
+  
+  # Create correlation plot
+  corrplot(cor_matrix, method = "number", type = "upper", tl.srt = 45)
+  
+  return(cor_matrix)
+}
+
+# Function 3: Group Comparison with Visualization
+compare_groups <- function(data, group_var, numeric_var) {
+  cat(paste("\n=== GROUP COMPARISON:", numeric_var, "by", group_var, "===\n"))
+  
+  # Box plot visualization
+  p <- ggplot(data, aes_string(x = group_var, y = numeric_var, fill = group_var)) +
+    geom_boxplot(alpha = 0.7) +
+    theme_minimal() +
+    labs(title = paste(numeric_var, "by", group_var))
+  
+  print(p)
+  
+  # Statistical test - Kruskal-Wallis for multiple groups
+  if (length(unique(data[[group_var]])) > 2) {
+    formula_str <- paste(numeric_var, "~", group_var)
+    test_result <- kruskal.test(as.formula(formula_str), data = data)
+    cat("Kruskal-Wallis Test Result:\n")
+    print(test_result)
+  } else {
+    # Wilcoxon test for two groups
+    formula_str <- paste(numeric_var, "~", group_var)
+    test_result <- wilcox.test(as.formula(formula_str), data = data)
+    cat("Wilcoxon Test Result:\n")
+    print(test_result)
+  }
+  
+  return(test_result)
+}
+
+# Function 4: Check Statistical Assumptions
+check_assumptions <- function(data, variable) {
+  cat(paste("\n=== ASSUMPTION CHECKING for", variable, "===\n"))
+  
+  # Normality test - Q-Q plot
+  qqnorm(data[[variable]], main = paste("Q-Q Plot:", variable))
+  qqline(data[[variable]], col = "red")
+  
+  # Shapiro-Wilk test
+  if (nrow(data) <= 5000) {  # Shapiro test works for n <= 5000
+    shapiro_result <- shapiro.test(data[[variable]])
+    cat("Shapiro-Wilk Test:\n")
+    print(shapiro_result)
+    return(shapiro_result)
+  } else {
+    cat("Sample size too large for Shapiro-Wilk test\n")
+    return(NULL)
+  }
+}
+
+# Function 5: ANOVA Analysis
+perform_anova <- function(data, dependent_var, independent_var) {
+  cat(paste("\n=== ANOVA:", dependent_var, "~", independent_var, "===\n"))
+  
+  # Perform ANOVA
+  formula_str <- paste(dependent_var, "~", independent_var)
+  anova_model <- aov(as.formula(formula_str), data = data)
+  anova_summary <- summary(anova_model)
+  
+  print(anova_summary)
+  
+  # Post-hoc test if significant
+  p_value <- anova_summary[[1]][["Pr(>F)"]][1]
+  if (!is.na(p_value) && p_value < 0.05) {
+    cat("\nPerforming Tukey HSD post-hoc test:\n")
+    tukey_result <- TukeyHSD(anova_model)
+    print(tukey_result)
+    return(list(anova = anova_summary, tukey = tukey_result))
+  }
+  
+  return(anova_summary)
+}
+
+# Function 6: Linear Mixed Effects Model
+fit_mixed_model <- function(data, dependent_var, fixed_effect, random_effect) {
+  cat(paste("\n=== LINEAR MIXED MODEL:", dependent_var, "===\n"))
+  
+  # Create formula
+  formula_str <- paste(dependent_var, "~", fixed_effect, "+ (1|", random_effect, ")")
+  
+  # Fit model
+  model <- lmer(as.formula(formula_str), data = data)
+  model_summary <- summary(model)
+  
+  print(model_summary)
+  return(model)
+}
+
+# Function 7: Decision Tree Analysis
+build_decision_tree <- function(data, target_var) {
+  cat(paste("\n=== DECISION TREE for", target_var, "===\n"))
+  
+  # Build tree
+  formula_str <- paste(target_var, "~ .")
+  tree_model <- rpart(as.formula(formula_str), data = data, method = "class")
+  
+  # Plot tree
+  rpart.plot(tree_model, main = paste("Decision Tree:", target_var),
+             box.palette = "RdYlGn", shadow.col = "grey", nn = TRUE)
+  
+  # Print rules
+  cat("Tree Rules:\n")
+  print(tree_model)
+  
+  return(tree_model)
+}
+
+# Function 8: Heatmap Creation
+create_heatmap <- function(data, scale_data = TRUE) {
+  cat("\n=== HEATMAP ANALYSIS ===\n")
+  
+  # Select numeric columns
+  numeric_data <- data %>% select_if(is.numeric)
+  
+  # Scale data if requested
+  if (scale_data) {
+    scaled_data <- scale(numeric_data)
+    main_title <- "Scaled Heatmap"
+  } else {
+    scaled_data <- as.matrix(numeric_data)
+    main_title <- "Heatmap"
+  }
+  
+  # Create heatmap
+  pheatmap(scaled_data,
+           main = main_title,
+           clustering_distance_rows = "euclidean",
+           clustering_distance_cols = "euclidean")
+  
+  return(scaled_data)
+}
+
+# Master Function - Run Complete Analysis
+run_complete_r_analysis <- function(data, target_var, numeric_var, group_var, id_var = NULL) {
+  cat("####################################################\n")
+  cat("# COMPREHENSIVE R STATISTICAL ANALYSIS PIPELINE   #\n")
+  cat("####################################################\n")
+  
+  # 1. Descriptive Statistics
+  desc_stats <- get_descriptive_stats(data)
+  
+  # 2. Correlation Analysis
+  correlations <- analyze_correlations(data)
+  
+  # 3. Group Comparison
+  group_comparison <- compare_groups(data, group_var, numeric_var)
+  
+  # 4. Assumption Checking
+  assumptions <- check_assumptions(data, numeric_var)
+  
+  # 5. ANOVA
+  anova_results <- perform_anova(data, numeric_var, group_var)
+  
+  # 6. Mixed Model (if ID variable provided)
+  mixed_model <- NULL
+  if (!is.null(id_var)) {
+    mixed_model <- fit_mixed_model(data, numeric_var, group_var, id_var)
+  }
+  
+  # 7. Decision Tree
+  tree_model <- build_decision_tree(data, target_var)
+  
+  # 8. Heatmap
+  heatmap_data <- create_heatmap(data)
+  
+  cat("\n####################################################\n")
+  cat("# R ANALYSIS COMPLETE - ALL FUNCTIONS EXECUTED    #\n")
+  cat("####################################################\n")
+  
+  return(list(
+    descriptive = desc_stats,
+    correlations = correlations,
+    group_comparison = group_comparison,
+    assumptions = assumptions,
+    anova = anova_results,
+    mixed_model = mixed_model,
+    decision_tree = tree_model,
+    heatmap = heatmap_data
+  ))
+}
+
+# Sample data creation for testing
+create_sample_data <- function() {
+  set.seed(42)
+  n <- 200
+  
+  data <- data.frame(
+    id = 1:n,
+    group = factor(sample(c("A", "B", "C"), n, replace = TRUE)),
+    score = rnorm(n, mean = 100, sd = 15),
+    category = factor(sample(c("Low", "Medium", "High"), n, replace = TRUE)),
+    value1 = rnorm(n, mean = 50, sd = 10),
+    value2 = rnorm(n, mean = 30, sd = 5),
+    outcome = factor(sample(c("Success", "Failure"), n, replace = TRUE, prob = c(0.6, 0.4)))
+  )
+  
+  return(data)
+}
+
+# Example usage:
+sample_data <- create_sample_data()
+results <- run_complete_r_analysis(sample_data, "outcome", "score", "group", "id")
